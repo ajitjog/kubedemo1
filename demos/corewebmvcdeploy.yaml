@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coremvc-deploy
+  labels:
+    app: coremvcapp
+spec:
+  selector:
+    matchLabels:
+      app: coremvcapp
+  replicas: 1
+  template:
+    metadata:
+      name: coremvckube
+      labels:
+        app: coremvcapp
+    spec:
+      containers:
+      - name: coremvccontainer
+        image: coremvcapp:local
+        imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: coremvc-service
+spec:
+  selector:
+    app: coremvcapp
+  ports:
+    - port: 80
+  type: NodePort
+  
+  

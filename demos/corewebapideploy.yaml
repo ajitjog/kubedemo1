@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coreapi-deploy
+  labels:
+    app: coreapiapp
+spec:
+  selector:
+    matchLabels:
+      app: coreapiapp
+  replicas: 5
+  template:
+    metadata:
+      name: coreapikube
+      labels:
+        app: coreapiapp
+    spec:
+      containers:
+      - name: coreapicontainer
+        image: coreapi:local
+        imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: coreapi-service
+spec:
+  selector:
+    app: coreapiapp
+  ports:
+    - port: 80
+  type: NodePort
+  
+  

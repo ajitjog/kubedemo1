@@ -1,0 +1,87 @@
+
+### Deploying on AKS...
+
+
+#login to Azure
+az login
+
+#create a RG
+az group create -n myresgrp -l australiaeast
+
+#create a ACR ...
+az acr create -n myacraj -g myresgrp -l australiaeast --sku standard
+
+#check
+az acr list -o table
+--> (Note the login server name in the output) :   letskubeacraj.azurecr.io
+
+#login into ACR
+az acr login -n myacramj 
+
+#tag the image with ACR server name
+docker tag coreapi:local <servername>.azurecr.io/coreapi:v1
+docker tag coremvcapp:local <servername>.azurecr.io/coremvcapp:v1
+
+#check
+docker image list
+
+#push the image onto ACR
+docker push <servername>.azurecr.io/coreapi:v1
+
+#check
+az acr repository list -n myacramj-o table
+
+#lets create service principal (SP) for the AKS app we will deploy
+az ad sp create-for-rbac --skip-assignment
+
+Note:
+appid: <> : ec0fecd1-de38-444c-9623-2076f26f0e81
+password: <> : e34dd624-fca9-4670-9e78-41597108861b
+
+#grant access to the above SP into ACR
+#in powershell 
+#
+#get acr id
+$acrId= az acr show -n myacramj --resource-group myresgrp --query "id" -o tsv
+
+#assign role
+az role assignment create --assignee "ec0fecd1-de38-444c-9623-2076f26f0e81"  --role Reader --scope $acrId
+
+#create AKS cluster...
+az aks create --name myakscluster  --resource-group myresgrp --node-count 3  --generate-ssh-keys --service-principal "ec0fecd1-de38-444c-9623-2076f26f0e81"  --client-secret "e34dd624-fca9-4670-9e78-41597108861b"
+
+#Get the credentials to connect to cluster...
+az aks get-credentials --name myakscluster --resource-group myresgrp
+
+#let get the no of agent nodes on AKS cluster...
+kubectl get nodes
+
+#Deploy the application on AKS
+
+#get acrloginserver name
+az acr list --resource-group letskuberg --query "[].{acrLoginServer:loginServer}" -o table
+
+Outputs something like: letskubeacraj.azurecr.io
+
+#modify the YAML file 
+
+#deploy the app...
+ kubectl create -f .\letskubedeploy.yml
+
+#watch the progress
+kubectl get service --watch
+
+#check 
+kubectl get nodes
+kubectl get pods
+kubectl get deployment
+
+(Note: use the external-ip to browse the app)
+
+#to change no of nodes
+az aks scale --resource-group letskuberg --name letskubeakscluster --node-count <newcount>
+
+#to change no of pods
+kubectl scale --replicas=5 deployment/letskube-deployment
+
+ 

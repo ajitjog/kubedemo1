@@ -1,0 +1,11 @@
+-----------------------------------------------------------
+az account list --output table
+az account set --subscription "<subid>"
+-----------------------------------------------------------
+kubectl create clusterrolebinding kubernetes-dashboard  --clusterrole=cluster-admin     --serviceaccount=kube-system:kubernetes-dashboard
+az aks browse --resource-group myaksgrp --name myAKSCluster
+
+-----------------------------------------------------------
+kubectl run curl --image=radial/busyboxplus:curl -i --tty
+nslookup my-nginx
+
